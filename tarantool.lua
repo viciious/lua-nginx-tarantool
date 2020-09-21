@@ -94,6 +94,24 @@ function set_keepalive(self)
     return ok
 end
 
+function do_and_keepalive(params, handler)
+    local tnt, err = tarantool:new(params)
+    if err then
+        return nil, err
+    end
+    local ok, err = handler(tnt)
+    if not ok then
+        tnt:disconnect()
+        return nil, err
+    end
+    ok,err = tnt:set_keepalive()
+    if not ok then
+        tnt:disconnect()
+        return nil, err
+    end
+    return true
+end
+
 function select(self, space, index, key, opts)
     if opts == nil then
         opts = {}
